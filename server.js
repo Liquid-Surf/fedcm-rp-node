@@ -28,10 +28,17 @@ const app = express()
 
 // IDP Config, replace with your own
 const idpConfig = {
-  configURL: 'http://localhost:8080/fedcm.json',
+  configURL: 'http://idp-1.localhost:8080/fedcm.json',
   clientId: 'yourClientID'
 }
-
+const idpConfig2 = {
+  configURL: 'http://idp-2.localhost:8080/fedcm.json',
+  clientId: 'yourClientID'
+}
+const idpConfig3 = {
+  configURL: 'http://idp-3.localhost:8080/fedcm.json',
+  clientId: 'yourClientID'
+}
 // register the helper function
 hbs.registerHelper('eq', function (a, b) {
   return a === b
