@@ -75,12 +75,12 @@ export const loading = new Loading()
 export const getCredential = async config => {
   const nonce = $('meta[name="nonce"]').content
   // MultiIDP is only available as behind a feature flag
-  const providers = config.idpConfig.map(idp => {
-    return {
-      configURL: idp.configURL,
-      clientId: idp.clientId
-    }
-  })
+  const providers = [
+    {
+      configURL: "http://idp-2.localhost:8080/fedcm.json",
+      clientId: config.idpConfig.clientId
+    }  
+  ]
 
   const providersWithNonce = providers.map(provider => {
     let newProvider = {
@@ -96,8 +96,9 @@ export const getCredential = async config => {
     return newProvider
   })
 
+
   let identity = {
-    providers: providersWithNonce
+    providers: []
   }
 
   // Only add the context if it's defined in the config
@@ -110,17 +111,9 @@ export const getCredential = async config => {
     identity.mediation = config.mediation
   }
 
-  // Add button mode if it's defined in the config
-  // Widget is default
-  if (config && config.mode === 'button') {
-    identity.mode = config.mode
-  }
+  identity.registered = true
 
-  console.log(identity)
-
-  return navigator.credentials.get({
-    identity: identity
-  })
+  return _navigator.credentials.get(identity)
 }
 
 export const handleConfigSave = async () => {
@@ -176,27 +169,25 @@ export const signout = account_id => async () => {
   }
 }
 
-export const createIframes = (containerId, idpConfig) => {
+// create personlized button (IFrame served from IDP) at given div containerID
+export const createIframe = (containerId, idpConfig) => {
+  const iframe = document.createElement('iframe')
+  const clientId = idpConfig.clientId
+  const origin_idp = new URL(idpConfig.configURL).origin
+
+  iframe.src = `${origin_idp}/fedcm/embedded?clientId=${encodeURIComponent(
+    clientId
+  )}`
+  iframe.referrerPolicy = 'origin'
+  iframe.allow = 'identity-credentials-get'
+
   const container = document.getElementById(containerId)
 
-  if (!container) {
-    console.warn(
-      `Container with id ${containerId} not found. Appending iframes to body.`
-    )
-    return
-  }
-
-  idpConfig.forEach(idp => {
-    const iframe = document.createElement('iframe')
-    const clientId = idp.clientId
-    const origin_idp = new URL(idp.configURL).origin
-
-    iframe.src = `${origin_idp}/fedcm/embedded?clientId=${encodeURIComponent(
-      clientId
-    )}`
-    iframe.referrerPolicy = 'origin'
-    iframe.allow = 'identity-credentials-get'
-
+  if (container) {
     container.append(iframe)
-  })
+  } else {
+    console.warn(
+      `Container with id ${containerId} not found. Appending iframe to body.`
+    )
+  }
 }

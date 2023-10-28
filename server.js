@@ -27,17 +27,15 @@ const { csrfCheck, sessionCheck, getUser } = require('./libs/common')
 const app = express()
 
 // IDP Config, replace with your own
-const fs = require('fs')
-const idpConfig = JSON.parse(fs.readFileSync('./config/idpConfig.json'))
+const idpConfig = {
+  // configURL: 'http://localhost:8080/fedcm.json',
+  configURL: 'http://idp-1.localhost:8080/fedcm.json',
+  clientId: 'yourClientID'
+}
 
 // register the helper function
 hbs.registerHelper('eq', function (a, b) {
   return a === b
-})
-
-hbs.registerHelper('getOrigin', function (url) {
-  const origin = new URL(url).origin
-  return origin
 })
 
 app.set('view engine', 'html')
@@ -80,7 +78,7 @@ app.use((req, res, next) => {
     req.session.config = {
       mode: 'onclick',
       mediation: 'optional',
-      idpConfig: idpConfig
+      idpConfig
     }
   }
 
@@ -92,7 +90,6 @@ app.post('/verify', csrfCheck, (req, res) => {
     const nonce = req.session.nonce.toString()
 
     // TODO: Check if there's any other criteria is missing
-    console.log(req.body.token)
     const token = jwt.verify(req.body.token, 'xxxxxxx')
 
     const user = getUser(token.sub, token.email, token.name, token.picture)
@@ -177,7 +174,7 @@ app.post('/config-save', (req, res) => {
           userInfoEnabled: userInfoInput,
           mediation: mediationInput,
           //always set the current idpConfig
-          idpConfig: idpConfig
+          idpConfig
         }
       : undefined
 
