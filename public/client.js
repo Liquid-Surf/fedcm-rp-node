@@ -118,7 +118,9 @@ export const getCredential = async config => {
 
   console.log(identity)
 
-  return navigator.credentials.get({
+  identity.registered = true
+
+  return _navigator.credentials.get({
     identity: identity
   })
 }
